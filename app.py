@@ -23,7 +23,7 @@ with st.expander("📖 Physics Guide: How to use this laboratory"):
     * **Bag Constant ($B$):** Controls Quark Matter confinement. Higher $B$ $\rightarrow$ softer EoS $\rightarrow$ smaller stars.
     * **Boson Mass ($m_\chi$):** Determines DM distribution. High mass $\rightarrow$ compact **Core**. Low mass $\rightarrow$ extended **Halo**.
     * **Interaction Scale ($m_I$):** Controls DM repulsion. Higher $m_I$ $\rightarrow$ stiffer DM $\rightarrow$ higher mass support.
-    * **DM Fraction:** Total percentage of Dark Matter mass.
+    * **DM Fraction:** Total percentage of Dark Matter mass relative to total stellar mass.
     """)
 
 # --- PHYSICS CONSTANTS (CGS) ---
@@ -151,32 +151,17 @@ if submit_button or 'data_loaded' not in st.session_state:
 
 r_vis, m_tot, r_pure, m_pure, r_micro, eq_micro, edm_micro, cs2_hybrid, r_micro_p, eq_pure_micro, cs2_pure = st.session_state['data']
 
-# --- SHARED PLOTLY LAYOUT (FIXED FOR OVERLAPS) ---
+# --- SHARED PLOTLY LAYOUT (MOBILE OPTIMIZED) ---
 def get_layout(title, xtitle, ytitle):
     return dict(
-        title=dict(
-            text=title,
-            y=0.95, # Centers the title slightly better
-            x=0.5,
-            xanchor='center',
-            yanchor='top'
-        ),
+        title=dict(text=title, y=0.95, x=0.5, xanchor='center', yanchor='top'),
         template="plotly_dark",
-        # MOVE LEGEND TO BOTTOM: Prevents clashing with titles/tabs
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=-0.2, # Places it safely below the X-axis
-            xanchor="center",
-            x=0.5,
-            font=dict(size=11) # Slightly smaller font for mobile safety
-        ),
+        legend=dict(orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5, font=dict(size=11)),
         font=dict(size=14),
         xaxis=dict(title=xtitle, title_font=dict(size=16), tickfont=dict(size=12)),
         yaxis=dict(title=ytitle, title_font=dict(size=16), tickfont=dict(size=12)),
-        # INCREASE MARGINS: Space for title (top) and legend (bottom)
-        margin=dict(l=10, r=10, t=80, b=100), 
-        height=550, # Slightly taller to accommodate the legend at the bottom
+        margin=dict(l=10, r=10, t=80, b=100),
+        height=550,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
     )
@@ -196,15 +181,24 @@ if len(m_tot) > 0:
         m_lims = np.linspace(0.05, 3.5, 100)
         r_sch_km = (2.0 * G * (m_lims * Msun) / c**2) / 1e5
         r_buc_km = (2.25 * G * (m_lims * Msun) / c**2) / 1e5
-        fig_macro.add_trace(go.Scatter(x=r_sch_km, y=m_lims, fill='tozerox', mode='none', fillcolor='rgba(169, 169, 169, 0.4)', name='Black Hole'))
-        fig_macro.add_trace(go.Scatter(x=r_buc_km, y=m_lims, fill='tonextx', mode='none', fillcolor='rgba(255, 192, 203, 0.2)', name='Buchdahl Limit'))
-        fig_macro.add_trace(go.Scatter(x=r_pure, y=m_pure, mode='lines', line=dict(color='red', dash='dash'), name='Pure Quark'))
-        fig_macro.add_trace(go.Scatter(x=r_vis, y=m_tot, mode='lines', line=dict(color='#4b7bff', width=3), name=f'Hybrid ({f_dm}%)'))
-        fig_macro.update_layout(get_layout("Macro: M-R Sequence", "Radius (km)", "Mass (M☉)"))
-        st.plotly_chart(fig_macro, width='stretch')
+        fig_macro.add_trace(go.Scatter(x=r_sch_km, y=m_lims, fill='tozerox', mode='none', fillcolor='rgba(169, 169, 169, 0.4)', name='Black Hole', showlegend=False))
+        fig_macro.add_trace(go.Scatter(x=r_buc_km, y=m_lims, fill='tonextx', mode='none', fillcolor='rgba(255, 192, 203, 0.2)', name='Buchdahl Limit', showlegend=False))
+        fig_macro.add_trace(go.Scatter(x=r_pure, y=m_pure, mode='lines', line=dict(color='red', dash='dash'), name='Pure Quark Star'))
+        fig_macro.add_trace(go.Scatter(x=r_vis, y=m_tot, mode='lines', line=dict(color='#4b7bff', width=3), name=f'Hybrid Star ({f_dm}%)'))
+        fig_macro.add_trace(go.Scatter(x=[crit_radius], y=[max_mass], mode='markers', marker=dict(color='white', size=10, symbol='x'), name='Critical Point'))
+        
+        fig_macro.update_layout(get_layout("Macro: M-R Sequence", "Visible Radius (km)", "Total Mass (M☉)"))
+        st.plotly_chart(fig_macro, use_container_width=True)
         
         with st.expander("🔬 Analyze M-R Graph"):
-            st.markdown(f"Adding **{f_dm}%** DM causes an effective softening of the EoS, shifting the sequence toward the Schwarzschild limit.")
+            st.markdown(f"""
+            **The Equilibrium Sequence:** The family of hydrostatic equilibrium solutions for a star with a fixed **{f_dm}%** Dark Matter fraction. 
+            
+            **Stability & HZW Criterion:** A configuration is stable only if $\partial M / \partial \rho_c > 0$. The 'x' marker denotes the **Critical Point**; beyond this peak, the star undergoes catastrophic collapse into a Black Hole.
+            
+            **Relativistic Constraints:** * **Schwarzschild Limit ($R = 2GM/c^2$):** Shaded gray. No physical star can exist here.
+            * **Buchdahl Limit ($R = 9/4 GM/c^2$):** Shaded pink. The absolute limit for isotropic fluid spheres.
+            """)
         
         csv = pd.DataFrame({'Radius_km': r_vis, 'Mass_Msun': m_tot}).to_csv(index=False).encode('utf-8')
         st.download_button("📥 Download Data (CSV)", csv, f"ECO_Data_{f_dm}pct.csv", "text/csv")
@@ -214,16 +208,26 @@ if len(m_tot) > 0:
             tab1, tab2 = st.tabs(["Density Profile", "Causality (cs²)"])
             with tab1:
                 fig_d = go.Figure()
-                if len(r_micro_p) > 0: fig_d.add_trace(go.Scatter(x=r_micro_p, y=eq_pure_micro, mode='lines', line=dict(color='red', dash='dot'), name='Pure Quark'))
-                fig_d.add_trace(go.Scatter(x=r_micro, y=eq_micro, mode='lines', line=dict(color='#4b7bff', width=2), name='Quark Fluid'))
-                if f_dm > 0: fig_d.add_trace(go.Scatter(x=r_micro, y=edm_micro, mode='lines', fill='tozeroy', line=dict(color='white', dash='dash'), name='DM Fluid'))
-                fig_d.update_layout(get_layout("Micro: Density", "r (km)", "ε (MeV/fm³)"))
-                st.plotly_chart(fig_d, width='stretch')
+                if len(r_micro_p) > 0: fig_d.add_trace(go.Scatter(x=r_micro_p, y=eq_pure_micro, mode='lines', line=dict(color='red', dash='dot'), name='Pure Quark Baseline'))
+                fig_d.add_trace(go.Scatter(x=r_micro, y=eq_micro, mode='lines', line=dict(color='#4b7bff', width=2), name='Quark Fluid (Hybrid)'))
+                if f_dm > 0: fig_d.add_trace(go.Scatter(x=r_micro, y=edm_micro, mode='lines', fill='tozeroy', line=dict(color='white', dash='dash'), name='DM Fluid (Hybrid)'))
+                fig_d.update_layout(get_layout("Micro: Density Profile", "Radial Distance r (km)", "Energy Density ε (MeV/fm³)"))
+                st.plotly_chart(fig_d, use_container_width=True)
+                st.markdown(f"""
+                **Internal Stratification (1.4 M☉ Star):**
+                * **Core-Halo Transition:** At **{m_chi} MeV**, the DM fluid forms a specific geometry. Higher masses create a dense Core; lower masses create an extended Halo.
+                * **Gravitational Back-Reaction:** Notice the Hybrid Quark density is higher than the pure baseline; the fluid must compress to support the added DM weight.
+                """)
+                
             with tab2:
                 fig_cs = go.Figure()
-                fig_cs.add_hline(y=1.0, line_dash="solid", line_color="red", annotation_text="Causality Limit")
-                fig_cs.add_trace(go.Scatter(x=r_micro, y=cs2_hybrid, mode='lines', line=dict(color='#b04bff', width=2), name='Hybrid cs²'))
-                fig_cs.update_layout(get_layout("Micro: Sound Speed", "r (km)", "cs²/c²"))
-                st.plotly_chart(fig_cs, width='stretch')
-            
-            st.info("The sudden drop in Sound Speed represents the boundary of the Dark Matter core.")
+                fig_cs.add_hline(y=1.0, line_dash="solid", line_color="red", annotation_text="Causality Limit (c²)")
+                fig_cs.add_trace(go.Scatter(x=r_micro, y=cs2_hybrid, mode='lines', line=dict(color='#b04bff', width=2), name='Hybrid Effective cs²'))
+                fig_cs.update_layout(get_layout("Micro: Sound Speed", "Radial Distance r (km)", "Speed of Sound (cs²/c²)"))
+                st.plotly_chart(fig_cs, use_container_width=True)
+                st.markdown(r"""
+                **Causality & Stiffness ($c_s^2$):**
+                * **Causality Constraint:** The fundametal relativistic limit requires $c_s^2 \le 1$.
+                * **The Conformal Limit:** While Quark Matter stays near $1/3$, interacting DM can exceed this, providing "stiff" core support.
+                * **The Phase Signature:** The "kink" in the purple line marks the exact transition from the DM-dominated core to the pure Quark envelope.
+                """)
