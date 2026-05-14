@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="ECO Laboratory", layout="wide", initial_sidebar_state="expanded")
 st.title("Exotic Compact Object (ECO) Laboratory")
-st.markdown("### Interactive Two-Fluid TOV Solver (Giangrandi et al. Framework)")
+st.markdown("### Interactive Two-Fluid TOV Solver")
 
 # --- PHYSICS GUIDE ---
 with st.expander("📖 Physics Guide: How to use this laboratory"):
