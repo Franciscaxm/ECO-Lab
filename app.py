@@ -201,6 +201,13 @@ if len(m_tot) > 0:
         
         fig_macro.update_layout(xaxis_title="Visible Radius (km)", yaxis_title="Total Mass (M☉)", height=500, xaxis=dict(range=[0, max(max(r_pure), max(r_vis)) + 1]), yaxis=dict(range=[0, max(max(m_pure), max(m_tot)) + 0.5]))
         st.plotly_chart(fig_macro, width='stretch')
+        # --- MACRO EXPLANATION ---
+        with st.expander("🔬 Analyze this Mass-Radius Sequence"):
+            st.markdown(f"""
+            **The Harrison-Zeldovich-Wheeler Criterion:** The 'x' marker on the graph represents the onset of gravitational instability ($\partial M / \partial \rho_c = 0$). Any star pushed beyond this central density will collapse into a Black Hole.
+
+            **Kinematic Impact of Dark Matter:** Notice the gap between the red dotted line (Pure Quark) and the blue line (Hybrid). By adding **{f_dm}%** Bosonic Dark Matter, we introduce an "effective softening" to the global Equation of State. The dark matter core exerts its own gravitational pull but provides less pressure support than the quark matter it displaces, generally resulting in a lower maximum mass and a more compact visible radius.
+            """)
         
         # --- DATA EXPORT BUTTON ---
         csv_df = pd.DataFrame({'Radius_km': r_vis, 'Mass_Msun': m_tot})
@@ -229,6 +236,12 @@ if len(m_tot) > 0:
                     fig_micro.add_trace(go.Scatter(x=r_micro, y=edm_micro, mode='none', fill='tozeroy', fillcolor='rgba(128,128,128,0.2)', showlegend=False, hoverinfo='none'))
                 fig_micro.update_layout(xaxis_title="Radial Distance r (km)", yaxis_title="Energy Density ε (MeV/fm³)", height=450)
                 st.plotly_chart(fig_micro, width='stretch')
+                # --- MICRO EXPLANATION ---
+            st.info(f"""
+            **Core Analytics Breakdown (1.4 M☉ Canonical Star):**
+            * **Density Profile:** The dark matter (gray/black) displaces the quark fluid. If $m_\chi$ is high, it forms a dense **Core** at $r=0$. If $m_\chi$ is low, it bleeds outward into a **Halo**. Notice how the presence of the DM core physically forces the red quark density higher to compensate for the added gravity!
+            * **Causality & Speed of Sound ($c_s^2$):** A valid physical fluid cannot transmit sound faster than light ($c_s^2 \leq 1$). The sharp "kink" or drop in the purple line represents the exact boundary where the Dark Matter core ends and the pure Quark envelope begins.
+            """)
                 
             with tab2:
                 fig_cs2 = go.Figure()
@@ -247,5 +260,12 @@ if len(m_tot) > 0:
                     yaxis=dict(range=[0.0, max(1.1, np.max(cs2_hybrid) + 0.1)])
                 )
                 st.plotly_chart(fig_cs2, width='stretch')
+                # --- CAUSALITY EXPLANATION ---
+                st.info("""
+                **Causality & Thermodynamic Stability ($c_s^2$):**
+                * **The Speed of Light Limit:** In General Relativity, the speed of sound squared ($c_s^2 = \partial P / \partial \epsilon$) must never exceed 1.0. If a fluid crosses the red line, it violates causality (information traveling faster than light). This proves our EoS is physically viable.
+                * **Fluid Stiffness:** A higher $c_s^2$ means the fluid is "stiffer" and provides more pressure support against gravity. Note how the interacting Bosonic Dark Matter can be stiffer than the "soft" Quark Matter envelope (which hovers around the conformal limit of 1/3).
+                * **The Phase Boundary:** The sudden drop or "kink" in the purple line represents the exact radial boundary where the dense Dark Matter core ends and the pure Quark envelope begins. This sharp discontinuity is the mathematical hallmark of a multi-fluid phase transition.
+                """)
         else:
             st.warning("A 1.4 M☉ star is not dynamically stable with the currently selected parameters.")
