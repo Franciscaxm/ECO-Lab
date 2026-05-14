@@ -151,17 +151,32 @@ if submit_button or 'data_loaded' not in st.session_state:
 
 r_vis, m_tot, r_pure, m_pure, r_micro, eq_micro, edm_micro, cs2_hybrid, r_micro_p, eq_pure_micro, cs2_pure = st.session_state['data']
 
-# --- SHARED PLOTLY LAYOUT (MOBILE OPTIMIZED) ---
+# --- SHARED PLOTLY LAYOUT (FIXED FOR OVERLAPS) ---
 def get_layout(title, xtitle, ytitle):
     return dict(
-        title=title,
+        title=dict(
+            text=title,
+            y=0.95, # Centers the title slightly better
+            x=0.5,
+            xanchor='center',
+            yanchor='top'
+        ),
         template="plotly_dark",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        # MOVE LEGEND TO BOTTOM: Prevents clashing with titles/tabs
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.2, # Places it safely below the X-axis
+            xanchor="center",
+            x=0.5,
+            font=dict(size=11) # Slightly smaller font for mobile safety
+        ),
         font=dict(size=14),
         xaxis=dict(title=xtitle, title_font=dict(size=16), tickfont=dict(size=12)),
         yaxis=dict(title=ytitle, title_font=dict(size=16), tickfont=dict(size=12)),
-        margin=dict(l=10, r=10, t=50, b=10),
-        height=480,
+        # INCREASE MARGINS: Space for title (top) and legend (bottom)
+        margin=dict(l=10, r=10, t=80, b=100), 
+        height=550, # Slightly taller to accommodate the legend at the bottom
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
     )
